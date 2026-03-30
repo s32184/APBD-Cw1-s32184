@@ -32,13 +32,6 @@
         private string SensorType { get; }
         private bool HasStabilization { get; }
     }
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            Console.WriteLine("Test");
-        }    
-    }
     
     //Możliwe typy użytkowników
     public enum UserType { Student, Employee }
@@ -70,4 +63,59 @@
         //Maksymalnie 5 wypożyczeń jednocześnie
         public override int MaxActiveRentals => 5;
     }
+    
+    //Iterfejsy
+    public interface IUserService {
+        User AddUser(User user);
+        User GetById(int id);
+        IEnumerable<User> GetAll();
+    }
+    
+    public interface IEquipmentService {
+        Equipment AddEquipment(Equipment equipment);
+        IEnumerable<Equipment> GetAll();
+        Equipment GetById(int id);
+    }
+    
+    public class UserService : IUserService {
+        private readonly List<User> _users = new();
+        //1. Dodawanie nowego użytkownika
+        public User AddUser(User user) { _users.Add(user); return user; }
+
+        public User GetById(int id) {
+            var user = _users.SingleOrDefault(u => u.Id == id);
+            if (user == null)
+            {
+                Console.WriteLine("User with id " + id + " not found.");
+            }
+            return user;
+        }
+        public IEnumerable<User> GetAll() => _users;
+    }
+
+    public class EquipmentService : IEquipmentService {
+        private readonly List<Equipment> _equipment = new();
+
+        //2. Dodawanie nowego sprzętu
+        public Equipment AddEquipment(Equipment equipment) { _equipment.Add(equipment); return equipment; }
+
+        //3. Wyświetlanie listy całego sprzętu
+        public IEnumerable<Equipment> GetAll() => _equipment;
+
+        public Equipment GetById(int id)
+        {
+            var eq = _equipment.SingleOrDefault(e => e.Id == id);
+            if (eq == null)
+            {
+                Console.WriteLine("Equipment with id " + id + " not found.");
+            }
+            return eq;
+        }
+    }
+
+    public class Program {
+            public static void Main(string[] args) {
+                Console.WriteLine("Test");
+            }
+        }
 }
