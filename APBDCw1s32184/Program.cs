@@ -111,6 +111,7 @@
         void ReturnEquipment(int rentalId, DateTime returnDate);
         IEnumerable<Rental> GetActiveRentalsForUser(int userId);
         IEnumerable<Rental> GetOverdueRentals(DateTime now);
+        IEnumerable<Rental> GetAllRentals();
     }
     
     public interface ILateFeePolicy { decimal CalculateLateFee(Rental rental); }
@@ -209,7 +210,9 @@
         public IEnumerable<Rental> GetActiveRentalsForUser(int userId) { return _rentals.Where(r => r.User.Id == userId && !r.IsReturned); }
         
         //9. Wyświetlenie listy przeterminowanych
-        public IEnumerable<Rental> GetOverdueRentals(DateTime now) { return _rentals.Where(r => r.IsOverdue(now)); } 
+        public IEnumerable<Rental> GetOverdueRentals(DateTime now) { return _rentals.Where(r => r.IsOverdue(now)); }
+        
+        public IEnumerable<Rental> GetAllRentals() => _rentals;
     }
 
     //Klasa zarządzająca naliczaniem kary
@@ -233,6 +236,40 @@
          }
     }
         
+    //Klasa zarządzania raportem
+    public class ReportService {
+        private readonly IEquipmentService _equipmentService;
+        private readonly IRentalService _rentalService;
+        private readonly IUserService _userService;
+        public ReportService(IEquipmentService equipmentService, IRentalService rentalService, IUserService userService) { _equipmentService = equipmentService; _rentalService = rentalService; _userService = userService; }
+            
+        //10. Wgenerowanie krótkiego raportu
+        public void PrintSummaryReport(DateTime now) {
+            Console.WriteLine("\n=== START OF REPORT ===");
+    
+            var allEquipment = _equipmentService.GetAll().ToList();
+            var allRentals = _rentalService.GetAllRentals().ToList();
+            var overdue = _rentalService.GetOverdueRentals(now).ToList();
+    
+            Console.WriteLine($"Total equipment: {allEquipment.Count}");
+            Console.WriteLine($"Available: {allEquipment.Count(e => e.Status == EquipmentStatus.Available)}");
+            Console.WriteLine($"Rented: {allEquipment.Count(e => e.Status == EquipmentStatus.Rented)}");
+            Console.WriteLine($"Unavailable: {allEquipment.Count(e => e.Status == EquipmentStatus.Unavailable)}");
+    
+            Console.WriteLine($"\nTotal rentals: {allRentals.Count}");
+            Console.WriteLine($"Active rentals: {allRentals.Count(r => !r.IsReturned)}");
+            Console.WriteLine($"Overdue rentals: {overdue.Count}");
+    
+            var totalLateFees = allRentals.Sum(r => r.LateFee);
+            Console.WriteLine($"\nTotal late fees collected: {totalLateFees:C}");
+    
+            Console.WriteLine("\nOverdue rentals details:");
+            foreach (var r in overdue) { Console.WriteLine(r); }
+    
+            Console.WriteLine("\n=== END OF REPORT ===\n");
+            }
+        }
+    
     public class Program {
             public static void Main(string[] args) {
                 Console.WriteLine("Test");
