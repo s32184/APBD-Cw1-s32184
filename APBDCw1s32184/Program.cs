@@ -39,4 +39,35 @@
             Console.WriteLine("Test");
         }    
     }
+    
+    //Możliwe typy użytkowników
+    public enum UserType { Student, Employee }
+    
+    //Klasa dla Użytkownika
+    public abstract class User {
+        private static int _idCounter = 1;
+        protected User(string firstName, string lastName, UserType userType) { Id = _idCounter++; FirstName = firstName; LastName = lastName; UserType = userType; }
+        
+        public int Id { get; }
+        private string FirstName { get; }
+        private string LastName { get; }
+        private UserType UserType { get; }
+        public abstract int MaxActiveRentals { get; }
+    }
+    
+    //Klasa dla Studenta
+    public class Student : User {
+        public Student(string firstName, string lastName) : base(firstName, lastName, UserType.Student) {}
+        
+        //Maksymalnie 2 wypożyczenia jednocześnie
+        public override int MaxActiveRentals => 2;
+    }
+    
+    //Klasa dla Pracownnika
+    public class Employee : User {
+        public Employee(string firstName, string lastName) : base(firstName, lastName, UserType.Employee) {}
+        
+        //Maksymalnie 5 wypożyczeń jednocześnie
+        public override int MaxActiveRentals => 5;
+    }
 }
